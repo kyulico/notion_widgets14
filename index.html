@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Skeuomorphic iPod Music Player</title>
+  <!-- Font Awesome for crisp vector icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@400;500;600&family=Segoe+UI:wght@400;500;600&display=swap');
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: #ffff;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0;
+      padding: 1rem;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+/* --- Skeuomorphic Outer Shell --- */
+    .player-casing {
+      width: 100%;
+      max-width: 620px;
+      height: 195px;
+      border-radius: 100px;
+      /* Ultra-smooth white/grey plastic gradient matching the image */
+      background: linear-gradient(180deg, #ffffff 0%, #f4f4f6 20%, #e1e3e7 60%, #cecfd5 90%, #bcbec6 100%);
+      box-shadow: 
+        0 18px 28px -6px rgba(0, 0, 0, 0.22),
+        0 8px 12px -4px rgba(0, 0, 0, 0.12),
+        inset 0 2px 2px rgba(255, 255, 255, 1),
+        inset 0 -2px 3px rgba(0, 0, 0, 0.2),
+        0 0 0 1px #bcbec5;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 12px;
+      position: relative;
+    }
+
+    /* Inner subtle metallic bezel */
+    .player-casing::before {
+      content: '';
+      position: absolute;
+      inset: 2px;
+      border-radius: 98px;
+      background: linear-gradient(180deg, #ffffff 0%, #f1f2f5 35%, #d8dadf 100%);
+      box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.9), inset 0 -1px 2px rgba(0, 0, 0, 0.12);
+      z-index: 1;
+    }
+
+    .player-content {
+      position: relative;
+      z-index: 2;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 10px;
+    }
+
+    /* --- Left Click Wheel --- */
+    .click-wheel-container {
+      width: 165px;
+      height: 165px;
+      border-radius: 50%;
+      background: linear-gradient(180deg, #f7f7f9 0%, #d8dadf 100%);
+      box-shadow: 
+        0 3px 6px rgba(0, 0, 0, 0.12),
+        inset 0 2px 3px rgba(255, 255, 255, 0.95),
+        inset 0 -2px 3px rgba(0, 0, 0, 0.15),
+        0 0 0 1px rgba(170, 175, 185, 0.5);
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    /* Wheel surface texture */
+    .wheel-surface {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      position: relative;
+      background: radial-gradient(circle, #ffffff 0%, #f4f5f8 70%, #e5e7ec 100%);
+    }
+
+    /* Wheel directional controls styling */
+    .wheel-btn {
+      position: absolute;
+      color: #a1a5ad;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.1s ease;
+      font-size: 15px;
+    }
+    .wheel-btn:active {
+      color: #60646c;
+      transform: scale(0.92);
+    }
+
+    .btn-top { top: 10px; left: 50%; transform: translateX(-50%); font-size: 20px; font-weight: 500; }
+    .btn-bottom { bottom: 10px; left: 50%; transform: translateX(-50%); font-size: 20px; font-weight: 500; }
+    .btn-left { left: 14px; top: 50%; transform: translateY(-50%); font-size: 13px; }
+    .btn-right { right: 14px; top: 50%; transform: translateY(-50%); font-size: 13px; }
+
+    /* Center Play/Pause Oval Button */
+    .center-btn {
+      width: 68px;
+      height: 68px;
+      border-radius: 50%;
+      background: linear-gradient(180deg, #ffffff 0%, #f5f6f8 50%, #e1e3e8 100%);
+      box-shadow: 
+        0 2px 4px rgba(0,0,0,0.1),
+        inset 0 1px 2px rgba(255, 255, 255, 1),
+        inset 0 -1.5px 2px rgba(0, 0, 0, 0.1),
+        0 0 0 1px rgba(185, 190, 200, 0.6);
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: #a1a5ad;
+      transition: all 0.1s ease;
+    }
+    .center-btn:active {
+      box-shadow: 
+        inset 0 2px 3px rgba(0, 0, 0, 0.2),
+        0 1px 1px rgba(0,0,0,0.05);
+      background: #e1e3e8;
+    }
+    .center-btn i {
+      font-size: 15px;
+    }
+
+    /* --- Right Screen Display --- */
+    .screen-container {
+      flex-grow: 1;
+      height: 124px;
+      margin-left: 16px;
+      border-radius: 62px;
+      /* Precise recessed inner window shadow & outer specular border */
+      box-shadow: 
+        inset 0 3px 6px rgba(0, 0, 0, 0.25),
+        inset 0 1px 2px rgba(0, 0, 0, 0.3),
+        0 1px 1px rgba(255, 255, 255, 0.9),
+        0 0 0 1px rgba(150, 155, 165, 0.5);
+      /* Exact Soft Pink Radial/Linear Fade matched from image */
+      background: linear-gradient(180deg, #ffffff 0%, #fff2f5 25%, #ffb6ca 65%, #ff8da8 100%);
+      padding: 12px 28px 10px 28px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Subtle glass top glare highlight */
+    .screen-container::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 48%;
+      background: linear-gradient(180deg, rgba(255,255,255,0.7) 0%, rgba(255,255,255,0) 100%);
+      pointer-events: none;
+      border-top-left-radius: 62px;
+      border-top-right-radius: 62px;
+    }
+
+    /* Song Title Display Container */
+    .track-info-container {
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+      margin-top: 2px;
+      overflow: hidden;
+      width: 100%;
+      height: 28px;
+      position: relative;
+    }
+
+    .track-title {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Tahoma, Helvetica, Arial, sans-serif;
+      font-size: 20px;
+      font-weight: 500;
+      color: #555555;
+      letter-spacing: -0.2px;
+      white-space: nowrap;
+      text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
+      line-height: 1.1;
+    }
+
+    marquee {
+      width: 100%;
+      line-height: 1.2;
+    }
+
+    /* Progress Bar Section */
+    .progress-section {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .time-display {
+      display: flex;
+      justify-content: space-between;
+      font-size: 13px;
+      color: #6d6368;
+      font-weight: 400;
+      font-variant-numeric: tabular-nums;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    /* Custom Seek Bar matching original layout */
+    .progress-bar-container {
+      width: 100%;
+      height: 12px;
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+      position: relative;
+    }
+
+    .progress-track-bg {
+      width: 100%;
+      height: 2px;
+      background: rgba(180, 120, 138, 0.35);
+      border-radius: 1px;
+      position: relative;
+    }
+
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background: rgba(175, 80, 105, 0.5);
+      border-radius: 1px;
+      position: absolute;
+      top: 0;
+      left: 0;
+    }
+
+    .progress-scrubber {
+      width: 11px;
+      height: 11px;
+      background: #ffffff;
+      border-radius: 50%;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.25), 0 0 0 1px rgba(0,0,0,0.08);
+      position: absolute;
+      top: 50%;
+      left: 0%;
+      transform: translate(-50%, -50%);
+      transition: transform 0.1s ease;
+    }
+
+    .progress-bar-container:hover .progress-scrubber {
+      transform: translate(-50%, -50%) scale(1.2);
+    }
+
+    /* Bottom Control Icons matching target image vectors & color */
+    .screen-controls {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 32px;
+      margin-bottom: 2px;
+    }
+
+    .screen-icon {
+      color: #f75d86;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      opacity: 0.9;
+    }
+
+    .screen-icon svg {
+      fill: #f75d86;
+      width: 18px;
+      height: 18px;
+      filter: drop-shadow(0 1px 0 rgba(255, 255, 255, 0.4));
+    }
+
+    .screen-icon:hover {
+      opacity: 1;
+      transform: scale(1.1);
+    }
+
+    .screen-icon.active svg {
+      fill: #e62b5c;
+    }
+
+    /* Toast Notification overlay for feedback */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      background: rgba(30, 41, 59, 0.85);
+      color: #fff;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 13px;
+      backdrop-filter: blur(4px);
+      opacity: 0;
+      transform: translateY(10px);
+      transition: all 0.25s ease;
+      pointer-events: none;
+      z-index: 100;
+    }
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Skeuomorphic iPod Shuffle 2nd Gen / Classic Widget Player -->
+  <div class="player-casing">
+    <div class="player-content">
+      
+      <!-- Left Click Wheel Control -->
+      <div class="click-wheel-container">
+        <div class="wheel-surface">
+          <!-- Volume Up / Plus -->
+          <div class="wheel-btn btn-top" id="btn-vol-up" title="Volume Up">
+            <i class="fa-solid fa-plus"></i>
+          </div>
+          <!-- Next / Fast Forward -->
+          <div class="wheel-btn btn-right" id="btn-next" title="Next Track">
+            <i class="fa-solid fa-forward-step"></i>
+          </div>
+          <!-- Volume Down / Minus -->
+          <div class="wheel-btn btn-bottom" id="btn-vol-down" title="Volume Down">
+            <i class="fa-solid fa-minus"></i>
+          </div>
+          <!-- Previous / Rewind -->
+          <div class="wheel-btn btn-left" id="btn-prev" title="Previous Track">
+            <i class="fa-solid fa-backward-step"></i>
+          </div>
+        </div>
+        
+        <!-- Center Play/Pause Button -->
+        <div class="center-btn" id="btn-play-pause" title="Play/Pause">
+          <i class="fa-solid fa-play" id="play-icon"></i>
+        </div>
+      </div>
+
+      <!-- Right Glass Screen -->
+      <div class="screen-container">
+        <!-- Track Title with Classic iPod Marquee Effect -->
+        <div class="track-info-container" id="track-info-container" title="Click to open Playlist">
+          <marquee id="marquee-title" behavior="scroll" direction="left" scrollamount="3">
+            <span class="track-title" id="track-title">Collect Call Garage</span>
+          </marquee>
+        </div>
+
+        <!-- Progress & Time -->
+        <div class="progress-section">
+          <div class="time-display">
+            <span id="current-time">0:00</span>
+            <span id="total-time">0:00</span>
+          </div>
+          <div class="progress-bar-container" id="progress-container">
+            <div class="progress-track-bg">
+              <div class="progress-fill" id="progress-fill"></div>
+            </div>
+            <div class="progress-scrubber" id="progress-scrubber"></div>
+          </div>
+        </div>
+
+        <!-- Display Screen Icon Bar with Exact Match Pink Icons -->
+        <div class="screen-controls">
+          <!-- Repeat Icon -->
+          <div class="screen-icon" id="btn-repeat" title="Repeat Mode">
+            <svg viewBox="0 0 24 24">
+              <path d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z"/>
+            </svg>
+          </div>
+          <!-- Music Note Icon / Playlist Manager -->
+          <div class="screen-icon active" id="btn-music" title="Playlist & Add Songs">
+            <svg viewBox="0 0 24 24">
+              <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>
+            </svg>
+          </div>
+          <!-- Shuffle Icon -->
+          <div class="screen-icon" id="btn-shuffle" title="Shuffle Mode">
+            <svg viewBox="0 0 24 24">
+              <path d="M10.59 9.17L5.41 4 4 5.41l5.17 5.17 1.42-1.41zM14.5 4l2.04 2.04L4 18.59 5.41 20 17.96 7.45 20 9.5V4h-5.5zm.33 9.41l-1.41 1.41 3.13 3.13L14.5 20H20v-5.5l-2.04 2.04-3.13-3.13z"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Playlist & Song Selector Modal -->
+  <div id="playlist-modal" class="fixed inset-0 bg-black/40 backdrop-blur-sm hidden flex items-center justify-center z-50 p-4">
+    <div class="bg-white rounded-2xl p-5 w-96 max-w-full shadow-2xl border border-gray-200 text-gray-800 flex flex-col gap-4 max-h-[90vh]">
+      
+      <!-- Header -->
+      <div class="flex items-center justify-between border-b pb-2">
+        <h3 class="font-semibold text-lg flex items-center gap-2">
+          <i class="fa-solid fa-compact-disc text-pink-500"></i> iPod Playlist
+        </h3>
+        <button id="close-modal-btn" class="text-gray-400 hover:text-gray-600 text-lg">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <!-- Playlist Items List -->
+      <div class="overflow-y-auto max-h-48 flex flex-col gap-1.5 pr-1" id="playlist-items-list">
+        <!-- Rendered dynamically -->
+      </div>
+
+      <!-- Form to Add / Edit Track -->
+      <div class="bg-gray-50 rounded-xl p-3 border border-gray-200 flex flex-col gap-2">
+        <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Add New Song</span>
+        <div class="flex gap-2">
+          <input type="text" id="input-title" class="w-1/2 text-xs p-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-pink-400" placeholder="Song Title (e.g. Call Garage)" />
+          <input type="text" id="input-artist" class="w-1/2 text-xs p-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-pink-400" placeholder="Artist Name" />
+        </div>
+        <input type="text" id="input-url" class="w-full text-xs p-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-pink-400" placeholder="https://files.catbox.moe/xxxxxx.mp3" />
+        <button id="add-song-btn" class="w-full py-1.5 text-xs bg-pink-500 hover:bg-pink-600 text-white font-medium rounded-lg shadow-sm transition">
+          <i class="fa-solid fa-plus mr-1"></i> Add Track to Playlist
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- HTML5 Hidden Audio Element -->
+  <audio id="audio-player" preload="metadata"></audio>
+
+  <!-- Subtle status popup toast -->
+  <div class="toast" id="toast">Ready</div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // Audio Instance & Elements
+      const audio = document.getElementById('audio-player');
+      const playPauseBtn = document.getElementById('btn-play-pause');
+      const playIcon = document.getElementById('play-icon');
+      const currentTimeEl = document.getElementById('current-time');
+      const totalTimeEl = document.getElementById('total-time');
+      const progressFill = document.getElementById('progress-fill');
+      const progressScrubber = document.getElementById('progress-scrubber');
+      const progressContainer = document.getElementById('progress-container');
+
+      const trackTitleEl = document.getElementById('track-title');
+      const marqueeTitle = document.getElementById('marquee-title');
+      const trackInfoContainer = document.getElementById('track-info-container');
+
+      const btnRepeat = document.getElementById('btn-repeat');
+      const btnShuffle = document.getElementById('btn-shuffle');
+      const btnMusic = document.getElementById('btn-music');
+      const btnVolUp = document.getElementById('btn-vol-up');
+      const btnVolDown = document.getElementById('btn-vol-down');
+      const btnNext = document.getElementById('btn-next');
+      const btnPrev = document.getElementById('btn-prev');
+
+      const modal = document.getElementById('playlist-modal');
+      const closeModalBtn = document.getElementById('close-modal-btn');
+      const playlistItemsList = document.getElementById('playlist-items-list');
+
+      const inputTitle = document.getElementById('input-title');
+      const inputArtist = document.getElementById('input-artist');
+      const inputUrl = document.getElementById('input-url');
+      const addSongBtn = document.getElementById('add-song-btn');
+
+      const toast = document.getElementById('toast');
+
+      // Pre-loaded Songs Playlist
+      let playlist = [
+        { title: 'Collect Call Garage', artist: 'TomatoMat', url: 'https://files.catbox.moe/8wnyy7.mp3' },
+        { title: 'たしかなこと', artist: 'Small Happiness,フレネシ', url: 'https://files.catbox.moe/k7d5fs.mp3' },
+        { title: 'Cling Cling', artist: 'Perfume', url: 'https://files.catbox.moe/5ky10v.mp3' },
+        { title: 'CHOCOLAT Feat Mariya Ise', artist: 'TCY FORCE', url: 'https://files.catbox.moe/nig38c.mp3' }
+      ];
+
+      let currentIndex = 0;
+      let isRepeat = false;
+      let isShuffle = false;
+
+      // Toast Notification
+      function showToast(message) {
+        toast.textContent = message;
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 1500);
+      }
+
+      // Format seconds into m:ss
+      function formatTime(seconds) {
+        if (isNaN(seconds) || seconds < 0) return '0:00';
+        const mins = Math.floor(seconds / 60);
+        const secs = Math.floor(seconds % 60);
+        return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+      }
+
+      // Update Screen Progress & Timers
+      function updateProgressUI() {
+        const duration = audio.duration || 0;
+        const current = audio.currentTime || 0;
+        const percent = duration > 0 ? (current / duration) * 100 : 0;
+        
+        progressFill.style.width = `${percent}%`;
+        progressScrubber.style.left = `${percent}%`;
+        currentTimeEl.textContent = formatTime(current);
+        totalTimeEl.textContent = formatTime(duration);
+      }
+
+      // Configure Marquee Scroll according to title length
+      function setupMarquee(titleText) {
+        if (trackTitleEl) trackTitleEl.textContent = titleText;
+        if (marqueeTitle) {
+          if (typeof marqueeTitle.stop === 'function') marqueeTitle.stop();
+          if (typeof marqueeTitle.start === 'function') marqueeTitle.start();
+        }
+      }
+
+      // Load Track at Index
+      function loadTrack(index, autoPlay = true) {
+        if (playlist.length === 0) return;
+        currentIndex = (index + playlist.length) % playlist.length;
+        const song = playlist[currentIndex];
+        
+        audio.src = song.url;
+        setupMarquee(song.title);
+        audio.load();
+
+        renderPlaylistUI();
+
+        if (autoPlay) {
+          audio.play().then(() => {
+            playIcon.className = 'fa-solid fa-pause';
+          }).catch(err => {
+            console.error(err);
+            playIcon.className = 'fa-solid fa-play';
+          });
+        } else {
+          playIcon.className = 'fa-solid fa-play';
+        }
+      }
+
+      // Toggle Play/Pause
+      function togglePlay() {
+        if (!audio.src && playlist.length > 0) {
+          loadTrack(0, true);
+          return;
+        }
+
+        if (audio.paused) {
+          audio.play().then(() => {
+            playIcon.className = 'fa-solid fa-pause';
+            showToast('Playing');
+          }).catch(() => {
+            showToast('Cannot play audio source');
+          });
+        } else {
+          audio.pause();
+          playIcon.className = 'fa-solid fa-play';
+          showToast('Paused');
+        }
+      }
+
+      // Render Playlist Items into Modal
+      function renderPlaylistUI() {
+        playlistItemsList.innerHTML = '';
+        playlist.forEach((song, idx) => {
+          const item = document.createElement('div');
+          const isActive = idx === currentIndex;
+          item.className = `flex items-center justify-between p-2 rounded-lg cursor-pointer transition text-xs ${
+            isActive ? 'bg-pink-100 border border-pink-300 font-semibold text-pink-700' : 'hover:bg-gray-100 text-gray-700'
+          }`;
+
+          item.innerHTML = `
+            <div class="flex items-center gap-2 overflow-hidden mr-2">
+              <i class="fa-solid ${isActive && !audio.paused ? 'fa-volume-high text-pink-500' : 'fa-music text-gray-400'}"></i>
+              <div class="truncate">
+                <div class="truncate font-medium">${song.title}</div>
+                <div class="text-[10px] opacity-75 truncate">${song.artist}</div>
+              </div>
+            </div>
+            <button class="delete-btn text-gray-400 hover:text-red-500 p-1 rounded" data-index="${idx}" title="Remove track">
+              <i class="fa-solid fa-trash-can"></i>
+            </button>
+          `;
+
+          item.addEventListener('click', (e) => {
+            if (e.target.closest('.delete-btn')) return;
+            loadTrack(idx, true);
+            closeModal();
+          });
+
+          playlistItemsList.appendChild(item);
+        });
+
+        // Delete button listener
+        document.querySelectorAll('.delete-btn').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const delIdx = parseInt(btn.getAttribute('data-index'));
+            playlist.splice(delIdx, 1);
+            if (delIdx === currentIndex) {
+              if (playlist.length > 0) {
+                loadTrack(currentIndex % playlist.length, !audio.paused);
+              } else {
+                audio.pause();
+                audio.src = '';
+                setupMarquee('No Tracks');
+                playIcon.className = 'fa-solid fa-play';
+              }
+            } else if (delIdx < currentIndex) {
+              currentIndex--;
+            }
+            renderPlaylistUI();
+          });
+        });
+      }
+
+      function openModal() { modal.classList.remove('hidden'); }
+      function closeModal() { modal.classList.add('hidden'); }
+
+      // Event Listeners
+      playPauseBtn.addEventListener('click', togglePlay);
+
+      btnNext.addEventListener('click', () => {
+        if (isShuffle) {
+          let randomIndex = Math.floor(Math.random() * playlist.length);
+          loadTrack(randomIndex, true);
+        } else {
+          loadTrack(currentIndex + 1, true);
+        }
+      });
+
+      btnPrev.addEventListener('click', () => {
+        loadTrack(currentIndex - 1, true);
+      });
+
+      btnVolUp.addEventListener('click', () => {
+        audio.volume = Math.min(1, audio.volume + 0.1);
+        showToast(`Volume: ${Math.round(audio.volume * 100)}%`);
+      });
+
+      btnVolDown.addEventListener('click', () => {
+        audio.volume = Math.max(0, audio.volume - 0.1);
+        showToast(`Volume: ${Math.round(audio.volume * 100)}%`);
+      });
+
+      btnRepeat.addEventListener('click', () => {
+        isRepeat = !isRepeat;
+        btnRepeat.classList.toggle('active', isRepeat);
+        showToast(isRepeat ? 'Repeat On' : 'Repeat Off');
+      });
+
+      btnShuffle.addEventListener('click', () => {
+        isShuffle = !isShuffle;
+        btnShuffle.classList.toggle('active', isShuffle);
+        showToast(isShuffle ? 'Shuffle On' : 'Shuffle Off');
+      });
+
+      btnMusic.addEventListener('click', openModal);
+      trackInfoContainer.addEventListener('click', openModal);
+      closeModalBtn.addEventListener('click', closeModal);
+
+      // Seek Bar Interactivity
+      progressContainer.addEventListener('click', (e) => {
+        const rect = progressContainer.getBoundingClientRect();
+        const clickX = e.clientX - rect.left;
+        const width = rect.width;
+        if (audio.duration) {
+          audio.currentTime = (clickX / width) * audio.duration;
+          updateProgressUI();
+        }
+      });
+
+      // Audio Event Bindings
+      audio.addEventListener('timeupdate', updateProgressUI);
+      audio.addEventListener('loadedmetadata', updateProgressUI);
+      audio.addEventListener('ended', () => {
+        if (isRepeat) {
+          audio.currentTime = 0;
+          audio.play();
+        } else {
+          loadTrack(currentIndex + 1, true);
+        }
+      });
+
+      // Add New Song
+      addSongBtn.addEventListener('click', () => {
+        const title = inputTitle.value.trim();
+        const artist = inputArtist.value.trim() || 'Unknown Artist';
+        const url = inputUrl.value.trim();
+
+        if (!title || !url) {
+          showToast('Please enter title & URL');
+          return;
+        }
+
+        playlist.push({ title, artist, url });
+        inputTitle.value = '';
+        inputArtist.value = '';
+        inputUrl.value = '';
+        renderPlaylistUI();
+        showToast('Song Added!');
+
+        if (playlist.length === 1) {
+          loadTrack(0, false);
+        }
+      });
+
+      // Initial Setup
+      loadTrack(0, false);
+    });
+  </script>
+</body>
+</html>
